@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title> — Single Page App (All-in-one)</title>
+<style>
+  :root{
+    --bg:#EAF2FF; --card:#ffffff; --accent:#2563EB; --accent-2:#1D4ED8; --muted:#6B7280;
+    --success:#10B981; --danger:#EF4444; --glass: rgba(255,255,255,0.7);
+    --radius:12px; --shadow: 0 8px 24px rgba(16,24,40,0.08);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,var(--bg),#F7FBFF); color:#0f172a}
+  header{background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:white;padding:18px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 6px 20px rgba(16,24,40,0.08)}
+  header h1{font-size:20px;margin:0;font-weight:700;letter-spacing:0.2px}
+  .brand-sub{font-size:12px;opacity:.9}
+  .wrap{max-width:1100px;margin:24px auto;padding:18px}
+  /* NAV */
+  nav.topnav{display:flex;gap:8px;align-items:center;background:var(--glass);padding:10px;border-radius:14px;box-shadow:var(--shadow);margin-bottom:18px;backdrop-filter: blur(6px)}
+  nav.topnav a{color:var(--accent-2);text-decoration:none;padding:10px 12px;border-radius:10px;font-weight:600}
+  nav.topnav a.active{background:linear-gradient(90deg,#fff, #f3f8ff);box-shadow:0 4px 12px rgba(30,64,175,0.08)}
+  .nav-spacer{flex:1}
+  .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700;box-shadow:0 6px 18px rgba(37,99,235,0.16)}
+  .btn.secondary{background:#fff;color:var(--accent-2);box-shadow:0 6px 18px rgba(13,42,138,0.06);border:1px solid rgba(13,42,138,0.06)}
+  .btn.warn{background:var(--danger)}
+  .flex{display:flex;gap:12px;align-items:center}
+  /* layout */
+  .grid{display:grid;grid-template-columns: 1fr 360px;gap:18px}
+  .panel{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .full{grid-column:1/-1}
+  h2{margin:0 0 8px 0;color:var(--accent-2)}
+  p.lead{margin:0 0 12px 0;color:var(--muted)}
+  label{display:block;font-weight:600;margin:10px 0 6px}
+  input[type=text], input[type=number], textarea, select{width:100%;padding:10px;border-radius:10px;border:1px solid #E6EEF8;background:#FBFDFF}
+  textarea{min-height:100px;resize:vertical}
+  small.muted{color:var(--muted);display:block;margin-top:6px}
+  /* results */
+  .disease-list{display:flex;flex-direction:column;gap:10px}
+  .disease{border-radius:10px;padding:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(37,99,235,0.06);display:flex;justify-content:space-between;align-items:center}
+  .disease .meta{color:var(--muted);font-size:13px}
+  .card-row{display:flex;gap:12px}
+  .small-card{flex:1;background:#fbfdff;padding:12px;border-radius:10px;border:1px solid rgba(2,6,23,0.04)}
+  /* chat */
+  .chat-window{display:flex;flex-direction:column;height:380px;border-radius:10px;overflow:hidden;border:1px solid #eef6ff}
+  .messages{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,#fbfdff,#f7fbff)}
+  .msg{max-width:78%;padding:10px;border-radius:10px;box-shadow:0 6px 12px rgba(2,6,23,0.03)}
+  .msg.user{align-self:flex-end;background:linear-gradient(180deg,#d1fae5,#bbf7d0);border:1px solid rgba(4,120,87,0.07)}
+  .msg.bot{align-self:flex-start;background:#fff;border:1px solid rgba(2,6,23,0.04)}
+  .chat-input{display:flex;padding:12px;gap:8px;border-top:1px solid #eef6ff;background:#fff}
+  .chip{display:inline-block;padding:6px 10px;border-radius:999px;background:#eff6ff;color:var(--accent-2);font-weight:700}
+  /* doctor list */
+  .doctor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .doctor-card{padding:12px;border-radius:10px;background:#fff;border:1px solid rgba(2,6,23,0.04)}
+  .muted-block{color:var(--muted);font-size:13px}
+  /* footer */
+  footer{max-width:1100px;margin:18px auto 40px auto;text-align:center;color:var(--muted);font-size:13px}
+  /* responsive */
+  @media (max-width:980px){.grid{grid-template-columns:1fr} .wrap{padding:12px}}
+  /* tiny niceties */
+  a.logo{display:flex;gap:10px;align-items:center}
+  .logo-mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,#fff,#ebf4ff);display:flex;align-items:center;justify-content:center;color:var(--accent-2);font-weight:800;box-shadow:0 6px 18px rgba(37,99,235,0.06)}
+  .mini{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo-mark">HA</div>
+    <div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <h1 style="margin:0">Mediva.AI</h1>
+        <div class="brand-sub mini">Symptom → Match → Help</div>
+      </div>
+      <div class="mini">Hackathon-ready UI · Single-file SPA</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- NAV -->
+  <nav class="topnav" role="navigation" aria-label="Main">
+    <a href="#home" data-section="home" class="active">Home</a>
+    <a href="#symptom" data-section="symptom">Symptom Checker</a>
+    <a href="#results" data-section="results">Results</a>
+    <a href="#checkin" data-section="checkin">Daily Check-in</a>
+    <a href="#doctor" data-section="doctor">Doctor Locator</a>
+    <a href="#medicine" data-section="medicine">Medicine Info</a>
+    <a href="#chat" data-section="chat">Chat</a>
+    <a href="#stats" data-section="stats">User Stats</a>
+    <div class="nav-spacer"></div>
+    <div id="userDisplay" style="display:flex;align-items:center;gap:10px">
+      <!-- filled by JS -->
+    </div>
+    <button id="logoutBtn" class="btn" style="display:none">Logout</button>
+  </nav>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+
+    <!-- LEFT / MAIN COLUMN -->
+    <div>
+
+      <!-- HOME -->
+      <section id="section-home" class="panel full" data-visible>
+        <h2>Welcome back</h2>
+        <p class="lead">This single-page demo is integrated with your backend.  
+           Use the menu to submit symptoms, chat with the assistant, find doctors, or search medicine info.</p>
+
+        <div class="card-row" style="margin-top:14px">
+          <div class="small-card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div class="chip">🩺 Symptom Check</div>
+                <div style="font-weight:700;margin-top:8px">Quickly submit symptoms</div>
+                <small class="muted-block">Normalized + matched by backend</small>
+              </div>
+              <div>
+                <button class="btn" onclick="navigateTo('symptom')">Start</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="small-card">
+            <div class="chip">💬 AI Chat</div>
+            <div style="font-weight:700;margin-top:8px">Ask medical questions</div>
+            <small class="muted-block">Powered by Gemini (backend)</small>
+            <div style="margin-top:10px"><button class="btn secondary" onclick="navigateTo('chat')">Open Chat</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SYMPTOM -->
+      <section id="section-symptom" class="panel" style="display:none">
+        <h2>Symptom Checker</h2>
+        <p class="lead">Describe what you're feeling. Backend will normalize and match top conditions.</p>
+
+        <form id="symptomForm" onsubmit="return false" aria-label="Submit symptoms">
+          <label for="userIdInput">User ID (auto-filled when logged in)</label>
+          <input id="userIdInput" type="text" placeholder="user id (auto)" readonly />
+
+          <label for="symptomText">Describe symptoms (comma separated or free text)</label>
+          <textarea id="symptomText" placeholder="e.g., fever, cough, headache"></textarea>
+
+          <label for="cityInput">City (optional)</label>
+          <input id="cityInput" type="text" placeholder="e.g., Delhi">
+
+          <label for="genderSelect">Gender</label>
+          <select id="genderSelect">
+            <option value="other">Other</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button id="submitSymptomsBtn" class="btn">Submit Symptoms</button>
+            <button id="clearSymptomsBtn" class="btn secondary">Clear</button>
+          </div>
+
+          <small class="muted" id="submitSymInfo">Your symptoms will be stored (local) and sent to backend for matching.</small>
+        </form>
+      </section>
+
+      <!-- RESULTS -->
+      <section id="section-results" class="panel" style="display:none">
+        <h2>Top Matches</h2>
+        <p class="lead">Backend returns the top matches. We only show the best candidates (1–3).</p>
+
+        <div id="resultsArea" class="disease-list" aria-live="polite">
+          <!-- results inserted here -->
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" onclick="navigateTo('symptom')">Edit Symptoms</button>
+          <button class="btn secondary" onclick="downloadResults()">Export (JSON)</button>
+        </div>
+      </section>
+
+      <!-- CHECKIN -->
+      <section id="section-checkin" class="panel" style="display:none">
+        <h2>Daily Check-in</h2>
+        <p class="lead">Quickly record or view recent symptom entries and alerts.</p>
+
+        <form id="checkinForm">
+          <label for="checkinUser">User ID</label>
+          <input id="checkinUser" type="text" readonly />
+          <label for="todayNotes">How are you feeling today?</label>
+          <textarea id="todayNotes" placeholder="Short note..."></textarea>
+
+          <div style="margin-top:10px">
+            <button id="checkinBtn" class="btn">Save Check-in (local)</button>
+            <button id="fetchAlertsBtn" class="btn secondary">Fetch Alerts</button>
+          </div>
+        </form>
+
+        <div style="margin-top:14px">
+          <h3>Alerts / Warnings</h3>
+          <div id="alertsArea" class="panel" style="background:#fff;padding:12px"></div>
+        </div>
+      </section>
+
+      <!-- DOCTOR LOCATOR -->
+      <section id="section-doctor" class="panel" style="display:none">
+        <h2>Doctor Locator</h2>
+        <p class="lead">Use geolocation or city name to find nearby hospitals (via backend).</p>
+
+        <form id="doctorForm" onsubmit="return false">
+          <label for="docCity">City (fallback)</label>
+          <input id="docCity" type="text" placeholder="Enter city name">
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="findByCityBtn" class="btn">Search by City</button>
+            <button id="useGeoBtn" class="btn secondary">Use My Location</button>
+          </div>
+        </form>
+
+        <div style="margin-top:14px">
+          <div id="doctorsList" class="doctor-grid"></div>
+        </div>
+      </section>
+
+      <!-- MEDICINE -->
+      <section id="section-medicine" class="panel" style="display:none">
+        <h2>Medicine Info</h2>
+        <p class="lead">Search for drug info (calls backend FDA wrapper).</p>
+
+        <form id="medicineForm" onsubmit="return false">
+          <label for="drugName">Drug Name</label>
+          <input id="drugName" type="text" placeholder="e.g., Paracetamol">
+          <div style="margin-top:10px"><button id="drugSearchBtn" class="btn">Search</button></div>
+        </form>
+
+        <div id="medicineResult" style="margin-top:12px"></div>
+      </section>
+
+      <!-- CHAT -->
+      <section id="section-chat" class="panel" style="display:none">
+        <h2>Chat with Assistant</h2>
+        <p class="lead">Ask the assistant — it's proxied via your backend to Gemini.</p>
+
+        <div class="chat-window">
+          <div id="messages" class="messages" role="log" aria-live="polite"></div>
+          <div class="chat-input">
+            <input id="chatInput" type="text" placeholder="Type your question..." />
+            <button id="sendChatBtn" class="btn">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <section id="section-stats" class="panel" style="display:none">
+        <h2>User Stats</h2>
+        <p class="lead">Points, badges, and history from backend.</p>
+        <div id="statsArea" class="card-row">
+          <div class="small-card"><strong>Points</strong><div id="statPoints" style="font-size:24px;margin-top:8px">-</div></div>
+          <div class="small-card"><strong>Badges</strong><div id="statBadges" style="margin-top:8px">-</div></div>
+          <div class="small-card"><strong>History</strong><div id="statHistory" style="margin-top:8px">-</div></div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT / SIDEBAR -->
+    <aside>
+      <div class="panel">
+        <h3>Quick Actions</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn" onclick="navigateTo('symptom')">Submit Symptoms</button>
+          <button class="btn secondary" onclick="navigateTo('results')">See Results</button>
+          <button class="btn secondary" onclick="navigateTo('chat')">Open Chat</button>
+        </div>
+
+        <hr style="margin:14px 0">
+
+        <h3>Recent</h3>
+        <div id="recentList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <!-- recent items -->
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <h3>Help</h3>
+        <p class="muted-block">App talks to your backend. If the API is not running at <code>http://localhost:5000</code> some features will use placeholders.</p>
+        <small class="muted">Make sure server.js is running and CORS allows this origin.</small>
+      </div>
+    </aside>
+
+  </div> <!-- end grid -->
+</div> <!-- end wrap -->
+
+<footer>Made with <span style="color:var(--accent-2)">care</span> and caffeine • Demo-ready SPA</footer>
+
+<!-- ========== SCRIPTS ========== -->
+<script>
+/* ========= Configuration ========= */
+const API_BASE = "http://localhost:5000"; // change if backend runs on a different host/port
+
+/* ========= Utilities ========= */
+function el(id){ return document.getElementById(id); }
+function qs(sel){ return document.querySelector(sel); }
+function showSection(name){
+  // hide all sections, show the requested one
+  document.querySelectorAll('[id^="section-"]').forEach(s => s.style.display = 'none');
+  const sec = document.getElementById('section-' + name);
+  if(sec) sec.style.display = 'block';
+  // update nav active
+  document.querySelectorAll('nav.topnav a').forEach(a => a.classList.toggle('active', a.dataset.section === name));
+  // update hash without triggering jump
+  history.replaceState(null, '', '#' + name);
+  // small UX: focus first input if present
+  setTimeout(()=> {
+    const f = sec && sec.querySelector('input, textarea, select, button');
+    if(f) f.focus();
+  }, 80);
+}
+
+/* ========= Auth (localStorage) ========= */
+function currentUser(){ return localStorage.getItem('currentUser') || null; }
+function requireAuthOrRedirect(){
+  if(!currentUser()){
+    // show login modal (simple) or redirect to 'login' view (we use index-login section)
+    showLogin();
+    return false;
+  }
+  return true;
+}
+function showLogin(){
+  // show a simple prompt - better than redirecting away in this SPA
+  const username = prompt("Enter username (existing) — or click Cancel to open Sign up.");
+  if(!username){
+    // open signup flow
+    const pick = confirm("Create a new account?");
+    if(pick) doSignupFlow();
+    return;
+  }
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if(!users[username]){
+    alert("User not found. Please sign up.");
+    doSignupFlow();
+    return;
+  }
+  const pass = prompt("Enter password:");
+  if(pass === null) return;
+  if(users[username].password !== pass){
+    alert("Wrong password.");
+    return;
+  }
+  localStorage.setItem('currentUser', username);
+  onLogin();
+}
+
+/* lightweight signup */
+function doSignupFlow(){
+  const username = prompt("Choose a username (no spaces):");
+  if(!username) return;
+  const password = prompt("Choose a password:");
+  if(!password) return;
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if(users[username]){ alert("User exists. Choose a different username."); return; }
+  users[username] = { password };
+  localStorage.setItem('users', JSON.stringify(users));
+  localStorage.setItem('currentUser', username);
+  alert("Account created & logged in as " + username);
+  onLogin();
+}
+
+/* on Login UI updates */
+function onLogin(){
+  const u = currentUser();
+  if(u){
+    el('userDisplay').innerHTML = `<div class="mini">Signed in as <strong>${u}</strong></div>`;
+    el('logoutBtn').style.display = 'inline-block';
+    // fill user id fields
+    ['userIdInput','checkinUser'].forEach(id => { const it = el(id); if(it) it.value = u; });
+    // load stats
+    loadStats();
+    // show home
+    navigateTo('home');
+  } else {
+    el('userDisplay').innerHTML = `<button class="btn secondary" onclick="doSignupFlow()">Sign up</button><button class="btn" onclick="showLogin()">Login</button>`;
+    el('logoutBtn').style.display = 'none';
+  }
+}
+
+/* logout */
+el('logoutBtn').addEventListener('click', ()=>{
+  localStorage.removeItem('currentUser');
+  // clear recent and fields
+  document.getElementById('recentList').innerHTML = '';
+  onLogin();
+  navigateTo('home');
+});
+
+/* ========= Navigation binding ========= */
+document.querySelectorAll('nav.topnav a').forEach(a=>{
+  a.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const sec = a.dataset.section;
+    navigateTo(sec);
+  });
+});
+function navigateTo(name){
+  // if not logged in, force login for pages other than home
+  if(name !== 'home' && !currentUser()){
+    showLogin();
+    if(!currentUser()) return;
+  }
+  showSection(name);
+  // some pages need specific refresh actions
+  if(name === 'results') renderResults();
+  if(name === 'checkin') loadCheckin();
+  if(name === 'doctor') { /* noop */ }
+  if(name === 'medicine') { /* noop */ }
+  if(name === 'chat') { initChatStartup(); }
+  if(name === 'stats') loadStats();
+}
+
+/* ========= Recent helper ========= */
+function addRecent(label, action){
+  const div = document.createElement('div');
+  div.innerHTML = `<button class="btn secondary" style="width:100%;text-align:left">${label}</button>`;
+  div.firstElementChild.addEventListener('click', action);
+  document.getElementById('recentList').prepend(div);
+  // keep only last 6
+  const kids = document.getElementById('recentList').children;
+  while(kids.length > 6) kids[kids.length-1].remove();
+}
+
+/* ========= SYMPTOMS ========= */
+el('submitSymptomsBtn').addEventListener('click', async ()=>{
+  if(!requireAuthOrRedirect()) return;
+  const uid = currentUser();
+  const text = el('symptomText').value.trim();
+  if(!text) return alert('Please enter symptoms.');
+  const city = el('cityInput').value.trim();
+  const gender = el('genderSelect').value;
+
+  // store locally for quick access
+  const store = JSON.parse(localStorage.getItem('symptom_submissions') || '[]');
+  const entry = { user_id: uid, symptoms: text, city, gender, date: new Date().toISOString().slice(0,10) };
+  store.push(entry);
+  localStorage.setItem('symptom_submissions', JSON.stringify(store));
+
+  // send to backend /submit_symptoms
+  try{
+    const res = await fetch(API_BASE + '/submit_symptoms', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+        user_id: uid,
+        symptoms: text,
+        city, gender
+      })
+    });
+    const jr = await res.json();
+    // fetch matches
+    const matchRes = await fetch(API_BASE + '/match_diseases', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+        user_id: uid,
+        symptoms: text
+      })
+    });
+    const matches = await matchRes.json();
+    // store matches locally for later result view
+    localStorage.setItem('lastMatches', JSON.stringify({ time:Date.now(), uid, input:text, matches }));
+    addRecent('Submitted: ' + text.slice(0,30) + (text.length>30?'…':''), ()=>navigateTo('results'));
+    alert('Symptoms submitted and processed.');
+    navigateTo('results');
+  }catch(err){
+    console.error(err);
+    alert('Error contacting backend. Results may be unavailable (fallback to local store).');
+    // fallback: compute nothing but still show placeholder
+    localStorage.setItem('lastMatches', JSON.stringify({ time:Date.now(), uid, input:text, matches: [] }));
+    navigateTo('results');
+  }
+});
+el('clearSymptomsBtn').addEventListener('click', ()=>{ el('symptomText').value=''; el('cityInput').value=''; el('genderSelect').value='other' });
+
+/* ========= RESULTS RENDER ========= */
+function renderResults(){
+  const raw = JSON.parse(localStorage.getItem('lastMatches') || 'null');
+  const container = el('resultsArea');
+  container.innerHTML = '';
+  if(!raw || !raw.matches || raw.matches.length === 0){
+    container.innerHTML = `<div class="disease">No strong matches found. Try refining symptoms or check back later.</div>`;
+    return;
+  }
+  // ensure we only show up to 3 (backend already does, but double-check)
+  raw.matches.slice(0,3).forEach(d=>{
+    const div = document.createElement('div');
+    div.className = 'disease';
+    const left = document.createElement('div');
+    left.innerHTML = `<div style="font-weight:800">${escapeHtml(d.name || d.name)}</div><div class="meta">${escapeHtml(d.severity || 'Severity: unknown')}</div>`;
+    const right = document.createElement('div');
+    right.style.textAlign='right';
+    right.innerHTML = `<div style="font-weight:800">${d.match_score || d.match_score || '-'}</div><div style="font-size:12px">${d.requires_doctor? 'May require doctor':''}</div><a href="${d.verified_info_url||'#'}" target="_blank" style="display:block;margin-top:6px;font-size:13px">More info</a>`;
+    div.appendChild(left); div.appendChild(right);
+    container.appendChild(div);
+  });
+}
+
+/* ========= CHECKIN ========= */
+el('checkinBtn').addEventListener('click', ()=>{
+  if(!requireAuthOrRedirect()) return;
+  const uid = currentUser();
+  const notes = el('todayNotes').value.trim();
+  // simple local save
+  const checks = JSON.parse(localStorage.getItem('daily_checks')||'[]');
+  checks.push({ user_id: uid, notes, date: new Date().toISOString().slice(0,10) });
+  localStorage.setItem('daily_checks', JSON.stringify(checks));
+  alert('Check-in saved locally.');
+  addRecent('Check-in: '+ (notes.slice(0,24) || 'no note'), ()=>navigateTo('checkin'));
+});
+el('fetchAlertsBtn').addEventListener('click', async ()=>{
+  if(!requireAuthOrRedirect()) return;
+  const uid = currentUser();
+  try{
+    const res = await fetch(API_BASE + '/daily_checkin/' + encodeURIComponent(uid));
+    const j = await res.json();
+    const area = el('alertsArea');
+    area.innerHTML = '';
+    if(j.alerts && j.alerts.length) {
+      j.alerts.forEach(a => area.innerHTML += `<div style="padding:8px;border-radius:8px;background:#fff;margin-bottom:8px">${escapeHtml(a)}</div>`);
+    } else {
+      area.innerHTML = `<div class="muted-block">No alerts. Keep monitoring.</div>`;
+    }
+  }catch(err){
+    console.error(err);
+    el('alertsArea').innerHTML = '<div class="muted-block">Could not reach server for alerts.</div>';
+  }
+});
+function loadCheckin(){
+  if(!requireAuthOrRedirect()) return;
+  const uid = currentUser();
+  el('checkinUser').value = uid;
+  // show last 3 local check-ins
+  const checks = JSON.parse(localStorage.getItem('daily_checks')||'[]').filter(c=>c.user_id===uid).slice(-3).reverse();
+  el('alertsArea').innerHTML = '';
+  if(checks.length===0) el('alertsArea').innerHTML = '<div class="muted-block">No local check-ins yet.</div>';
+  else checks.forEach(c => el('alertsArea').innerHTML += `<div style="padding:8px;border-radius:8px;background:#fff;margin-bottom:8px"><strong>${c.date}</strong><div>${escapeHtml(c.notes)}</div></div>`);
+}
+
+/* ========= DOCTOR LOCATOR ========= */
+el('findByCityBtn').addEventListener('click', async ()=>{
+  const city = el('docCity').value.trim();
+  if(!city) return alert('Enter a city or use your location.');
+  try{
+    const res = await fetch(API_BASE + '/doctor_locator', {
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({city})
+    });
+    const j = await res.json();
+    renderDoctors(j.hospitals || j.hospitals || []);
+  }catch(err){
+    console.error(err);
+    alert('Error fetching doctors.');
+  }
+});
+el('useGeoBtn').addEventListener('click', ()=>{
+  if(!navigator.geolocation) return alert('Geolocation unsupported.');
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    try{
+      const res = await fetch(API_BASE + '/doctor_locator', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
+      });
+      const j = await res.json();
+      renderDoctors(j.hospitals || []);
+    }catch(err){
+      console.error(err);
+      alert('Error fetching doctors via coords.');
+    }
+  }, ()=>alert('Could not get location (permission denied?)'));
+});
+function renderDoctors(list){
+  const box = el('doctorsList'); box.innerHTML = '';
+  if(!list || list.length===0) box.innerHTML = '<div class="muted-block">No hospitals found.</div>';
+  else list.forEach(h=>{
+    const d = document.createElement('div'); d.className='doctor-card';
+    d.innerHTML = `<strong>${escapeHtml(h.name)}</strong><div class="muted-block">${escapeHtml(h.address || h.vicinity || '')}</div><div style="margin-top:8px"><button class="btn secondary" onclick="console.log('Navigate to map')">Open</button></div>`;
+    box.appendChild(d);
+  });
+}
+
+/* ========= MEDICINE SEARCH ========= */
+el('drugSearchBtn').addEventListener('click', async ()=>{
+  const name = el('drugName').value.trim();
+  if(!name) return alert('Enter a medicine name.');
+  try{
+    const res = await fetch(API_BASE + '/medicine_info?drug_name=' + encodeURIComponent(name));
+    const j = await res.json();
+    // Show friendly fields
+    const info = j.drug_info || j;
+    if(!info){ el('medicineResult').innerHTML = '<div class="muted-block">No info returned.</div>'; return;}
+    el('medicineResult').innerHTML = `<div style="padding:12px;border-radius:10px;background:#fff;border:1px solid rgba(2,6,23,0.04)">
+      <div style="font-weight:800;font-size:16px">${escapeHtml((info.brand_name && info.brand_name[0]) || info.brand_name || name)}</div>
+      <div class="muted-block" style="margin-top:6px">Generic: ${escapeHtml((info.generic_name && info.generic_name[0]) || info.generic_name || 'N/A')}</div>
+      <div style="margin-top:8px">${escapeHtml((info.indications && info.indications[0]) || info.indications || info.dosage || 'No further description available.')}</div>
+    </div>`;
+  }catch(err){
+    console.error(err);
+    el('medicineResult').innerHTML = '<div class="muted-block">Error fetching medicine info.</div>';
+  }
+});
+
+/* ========= CHAT ========= */
+let chatInProgress = false;
+function initChatStartup(){
+  // nice greeting
+  const messages = el('messages'); if(messages.children.length===0) addChatBot("Hi! I'm your assistant. Describe your symptoms or ask a question.");
+}
+el('sendChatBtn').addEventListener('click', async ()=>{
+  const text = el('chatInput').value.trim(); if(!text) return;
+  addChatUser(text); el('chatInput').value=''; addRecent('Chat: ' + text.slice(0,20), ()=>navigateTo('chat'));
+  // send to backend /chat
+  try{
+    const res = await fetch(API_BASE + '/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ message: text })});
+    const j = await res.json();
+    addChatBot(j.response || j.reply || 'No response from assistant.');
+  }catch(err){
+    console.error(err); addChatBot('Chat service unavailable.');
+  }
+});
+function addChatUser(text){ const m=document.createElement('div'); m.className='msg user'; m.textContent=text; el('messages').appendChild(m); el('messages').scrollTop = el('messages').scrollHeight; }
+function addChatBot(text){ const m=document.createElement('div'); m.className='msg bot'; m.textContent=text; el('messages').appendChild(m); el('messages').scrollTop = el('messages').scrollHeight; }
+
+/* ========= STATS ========= */
+async function loadStats(){
+  if(!currentUser()) return;
+  try{
+    const res = await fetch(API_BASE + '/user_stats/' + encodeURIComponent(currentUser()));
+    const j = await res.json();
+    el('statPoints').textContent = j.points ?? '-';
+    el('statBadges').textContent = (j.badges && j.badges.length)? j.badges.join(', '): '—';
+    el('statHistory').textContent = j.history_length ?? 0;
+  }catch(err){
+    console.error(err);
+    el('statPoints').textContent = '-';
+    el('statBadges').textContent = '-';
+    el('statHistory').textContent = '-';
+  }
+}
+
+/* ========= Page init and helpers ========= */
+function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* If hash present, navigate there */
+function boot(){
+  // attach quick references
+  // ensure userDisplay element exists in DOM
+  if(!el('userDisplay')){ console.warn('Missing userDisplay'); }
+  // if logged in, show user
+  onLogin();
+  // restore lastMatches into results if available
+  const hash = location.hash.replace('#','') || 'home';
+  navigateTo(hash);
+}
+boot();
+
+/* Download results JSON */
+function downloadResults(){
+  const raw = localStorage.getItem('lastMatches') || '{}';
+  const blob = new Blob([raw], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'results.json';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+/* Small: on load, if no user, show login prompt */
+window.addEventListener('load', ()=>{
+  if(!currentUser()){
+    // show sign up / login choices unobtrusively
+    el('userDisplay').innerHTML = `<button class="btn secondary" onclick="doSignupFlow()">Sign up</button><button class="btn" onclick="showLogin()">Login</button>`;
+  }
+});
+</script>
+</body>
+</html>
